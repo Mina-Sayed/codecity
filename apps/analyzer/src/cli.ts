@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { analyzeLocalRepository } from "@codecity/analyzer-js-ts";
 import { applyEngineeringRules } from "@codecity/engineering-rules";
 import type { ProjectGraph } from "@codecity/graph-core";
-import { analyzePublicGitHubRepository } from "./github-ingestion.js";
+import { analyzePublicGitHubRepository } from "@codecity/repository-ingestion";
 
 interface AnalyzeOptions {
   rootDir: string;
@@ -106,7 +106,7 @@ export async function runCli(args: string[]): Promise<number> {
     const options = parseAnalyzeGitHubArgs(rest);
     const token = process.env.GITHUB_TOKEN;
     const graph = await analyzePublicGitHubRepository(options.repositoryUrl, {
-      ...(token ? { token } : {}),
+      ...(token ? { token: options.token } : {}),
       onProgress: ({ message }) => console.error(`[codecity] ${message}`),
     });
     await writeGraph(options.output, graph);
