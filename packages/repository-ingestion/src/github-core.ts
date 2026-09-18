@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, open, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import * as tar from "tar";
-import { analyzeLocalRepository } from "@codecity/analyzer-js-ts";
 import { applyEngineeringRules } from "@codecity/engineering-rules";
 import type { ProjectGraph } from "@codecity/graph-core";
+import type { AnalyzeLocalRepositoryInput } from "@codecity/analyzer-js-ts";
 
 export interface GitHubRepositoryRef {
   owner: string;
@@ -305,8 +305,11 @@ async function emit(
   await onProgress?.({ stage, message });
 }
 
-export async function analyzePublicGitHubRepository(
+export type LocalRepositoryAnalyzer = (input: AnalyzeLocalRepositoryInput) => Promise<ProjectGraph>;
+
+export async function analyzePublicGitHubRepositoryWithAnalyzer(
   repositoryUrl: string,
+  analyzeLocalRepository: LocalRepositoryAnalyzer,
   options: GitHubIngestionOptions = {},
 ): Promise<ProjectGraph> {
   const limits = normalizedLimits(options.limits);

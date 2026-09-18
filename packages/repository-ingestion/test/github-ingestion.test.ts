@@ -8,7 +8,7 @@ import {
   analyzePublicGitHubRepository,
   parseGitHubRepositoryUrl,
   resolvePublicGitHubRepository,
-} from "../src/github-ingestion.js";
+} from "../src/index.js";
 
 function jsonResponse(value: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(value), {

@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { analyzeLocalRepository } from "@codecity/analyzer-js-ts";
 import { applyEngineeringRules } from "@codecity/engineering-rules";
 import type { ProjectGraph } from "@codecity/graph-core";
-import { analyzePublicGitHubRepository } from "./github-ingestion.js";
+import { analyzePublicGitHubRepository } from "@codecity/repository-ingestion";
 
 interface AnalyzeOptions {
   rootDir: string;
