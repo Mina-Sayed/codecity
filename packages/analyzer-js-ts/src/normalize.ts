@@ -76,10 +76,14 @@ function makeSymbols(
   for (const file of syntax) {
     const fileId = fileIds.get(file.relativePath);
     if (!fileId) continue;
+    const occurrences = new Map<string, number>();
 
     for (const symbol of file.symbols) {
       const kind = toGraphSymbolKind(symbol.kind);
-      const disambiguator = `${symbol.name}@${symbol.start ?? "unknown"}`;
+      const occurrenceKey = `${kind}\0${symbol.name}`;
+      const occurrence = occurrences.get(occurrenceKey) ?? 0;
+      occurrences.set(occurrenceKey, occurrence + 1);
+      const disambiguator = `${symbol.name}#${occurrence}`;
       const id = makeNodeId(kind, file.relativePath, disambiguator);
       const node: SymbolNode = {
         id,

@@ -121,11 +121,16 @@ function diagnosticMessage(error: unknown): string {
 function namedDeclaration(node: AstNode): { kind: SyntaxSymbol["kind"]; name: string } | null {
   const id = nameOf(node.id);
   switch (node.type) {
-    case "FunctionDeclaration": return id ? { kind: "function", name: id } : null;
-    case "ClassDeclaration": return id ? { kind: "class", name: id } : null;
-    case "TSInterfaceDeclaration": return id ? { kind: "interface", name: id } : null;
-    case "TSTypeAliasDeclaration": return id ? { kind: "type", name: id } : null;
-    default: return null;
+    case "FunctionDeclaration":
+      return id ? { kind: "function", name: id } : null;
+    case "ClassDeclaration":
+      return id ? { kind: "class", name: id } : null;
+    case "TSInterfaceDeclaration":
+      return id ? { kind: "interface", name: id } : null;
+    case "TSTypeAliasDeclaration":
+      return id ? { kind: "type", name: id } : null;
+    default:
+      return null;
   }
 }
 
@@ -138,42 +143,67 @@ function walk(root: AstNode, visit: (node: AstNode, nesting: number) => number):
     for (const [key, value] of Object.entries(node)) {
       if (key === "parent") continue;
       if (isNode(value)) inner(value, childNesting);
-      else if (Array.isArray(value)) for (const item of value) if (isNode(item)) inner(item, childNesting);
+      else if (Array.isArray(value)) {
+        for (const item of value) if (isNode(item)) inner(item, childNesting);
+      }
     }
   }
   inner(root, 0);
 }
 
-function analyzeWithOxc(parseSync: OxcParseSync, file: DiscoveredSourceFile, sourceText: string): SyntaxFileAnalysis {
+function analyzeWithOxc(
+  parseSync: OxcParseSync,
+  file: DiscoveredSourceFile,
+  sourceText: string,
+): SyntaxFileAnalysis {
   const result = parseSync(file.relativePath, sourceText);
   const program = result.program as AstNode;
   const imports: SyntaxImport[] = [];
   const exports: SyntaxExport[] = [];
   const symbols: SyntaxSymbol[] = [];
   const calls: SyntaxCall[] = [];
-  const exportedDeclarations = new WeakSet<object>();
+  const exportedDeclarations = new WeakMap<object, { start?: number; end?: number }>();
+
   const body = Array.isArray(program.body) ? program.body : [];
   for (const statement of body) {
     if (!isNode(statement)) continue;
     if (statement.type === "ImportDeclaration") {
       const source = literalString(statement.source);
       if (source) {
-        const imported = Array.isArray(statement.specifiers) ? statement.specifiers.flatMap((specifier) => {
-          if (!isNode(specifier)) return [];
-          return [nameOf(specifier.imported) ?? nameOf(specifier.local)].filter((name): name is string => name !== null);
-        }) : [];
+        const imported = Array.isArray(statement.specifiers)
+          ? statement.specifiers.flatMap((specifier) => {
+              if (!isNode(specifier)) return [];
+              return [nameOf(specifier.imported) ?? nameOf(specifier.local)].filter(
+                (name): name is string => name !== null,
+              );
+            })
+          : [];
         imports.push({ source, kind: "static", imported });
       }
     }
     if (statement.type === "ExportNamedDeclaration") {
-      if (isNode(statement.declaration)) exportedDeclarations.add(statement.declaration);
+      if (isNode(statement.declaration)) {
+        exportedDeclarations.set(statement.declaration, {
+          ...(typeof statement.start === "number" ? { start: statement.start } : {}),
+          ...(typeof statement.end === "number" ? { end: statement.end } : {}),
+        });
+      }
       const source = literalString(statement.source);
-      const names = Array.isArray(statement.specifiers) ? statement.specifiers.map(exportedName).filter((name): name is string => name !== null) : [];
+      const names = Array.isArray(statement.specifiers)
+        ? statement.specifiers.map(exportedName).filter((name): name is string => name !== null)
+        : [];
       exports.push({ source, kind: "named", names });
     }
-    if (statement.type === "ExportAllDeclaration") exports.push({ source: literalString(statement.source), kind: "all", names: [] });
+    if (statement.type === "ExportAllDeclaration") {
+      exports.push({ source: literalString(statement.source), kind: "all", names: [] });
+    }
     if (statement.type === "ExportDefaultDeclaration") {
-      if (isNode(statement.declaration)) exportedDeclarations.add(statement.declaration);
+      if (isNode(statement.declaration)) {
+        exportedDeclarations.set(statement.declaration, {
+          ...(typeof statement.start === "number" ? { start: statement.start } : {}),
+          ...(typeof statement.end === "number" ? { end: statement.end } : {}),
+        });
+      }
       exports.push({ source: null, kind: "default", names: [] });
     }
   }
@@ -183,7 +213,15 @@ function analyzeWithOxc(parseSync: OxcParseSync, file: DiscoveredSourceFile, sou
   walk(program, (node, nesting) => {
     const declaration = namedDeclaration(node);
     if (declaration) {
-      symbols.push({ ...declaration, exported: exportedDeclarations.has(node), ...(typeof node.start === "number" ? { start: node.start } : {}), ...(typeof node.end === "number" ? { end: node.end } : {}) });
+      const exportRange = exportedDeclarations.get(node);
+      const start = exportRange?.start ?? node.start;
+      const end = exportRange?.end ?? node.end;
+      symbols.push({
+        ...declaration,
+        exported: exportRange !== undefined,
+        ...(typeof start === "number" ? { start } : {}),
+        ...(typeof end === "number" ? { end } : {}),
+      });
     }
     if (node.type === "MethodDefinition") {
       const name = nameOf(node.key);
@@ -197,12 +235,18 @@ function analyzeWithOxc(parseSync: OxcParseSync, file: DiscoveredSourceFile, sou
       const source = literalString(node.source);
       if (source) imports.push({ source, kind: "dynamic", imported: [] });
     }
-    const decisionNode = node.type === "IfStatement" || node.type === "ForStatement" || node.type === "ForInStatement" || node.type === "ForOfStatement" || node.type === "WhileStatement" || node.type === "DoWhileStatement" || node.type === "CatchClause" || node.type === "ConditionalExpression" || (node.type === "SwitchCase" && node.test != null) || (node.type === "LogicalExpression" && (node.operator === "&&" || node.operator === "||" || node.operator === "??"));
+    const decisionNode =
+      node.type === "IfStatement" || node.type === "ForStatement" || node.type === "ForInStatement" ||
+      node.type === "ForOfStatement" || node.type === "WhileStatement" || node.type === "DoWhileStatement" ||
+      node.type === "CatchClause" || node.type === "ConditionalExpression" ||
+      (node.type === "SwitchCase" && node.test != null) ||
+      (node.type === "LogicalExpression" && (node.operator === "&&" || node.operator === "||" || node.operator === "??"));
     if (decisionNode) cyclomatic += 1;
     const nextNesting = decisionNode || node.type === "SwitchStatement" || node.type === "TryStatement" ? nesting + 1 : nesting;
     maxNesting = Math.max(maxNesting, nextNesting);
     return nextNesting;
   });
+
   return finalize(file.relativePath, sourceText, imports, exports, symbols, calls, cyclomatic, maxNesting, result.errors.map((error) => ({ message: diagnosticMessage(error) })));
 }
 
@@ -216,6 +260,7 @@ function analyzeWithTypeScript(file: DiscoveredSourceFile, sourceText: string): 
   const calls: SyntaxCall[] = [];
   let cyclomatic = 1;
   let maxNesting = 0;
+
   const hasModifier = (node: any, kind: number) => Array.isArray(node.modifiers) && node.modifiers.some((modifier: any) => modifier.kind === kind);
   const symbolKind = (node: any): SyntaxSymbol["kind"] | null => {
     if (ts.isFunctionDeclaration(node)) return "function";
@@ -225,6 +270,7 @@ function analyzeWithTypeScript(file: DiscoveredSourceFile, sourceText: string): 
     if (ts.isMethodDeclaration(node)) return "method";
     return null;
   };
+
   function visit(node: any, nesting: number): void {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
       const imported: string[] = [];
@@ -234,19 +280,32 @@ function analyzeWithTypeScript(file: DiscoveredSourceFile, sourceText: string): 
       if (bindings && ts.isNamedImports(bindings)) for (const element of bindings.elements) imported.push(element.propertyName?.text ?? element.name.text);
       imports.push({ source: node.moduleSpecifier.text, kind: "static", imported });
     }
-    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword && node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0])) imports.push({ source: node.arguments[0].text, kind: "dynamic", imported: [] });
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword && node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0])) {
+      imports.push({ source: node.arguments[0].text, kind: "dynamic", imported: [] });
+    }
     if (ts.isExportDeclaration(node)) {
       const source = node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier) ? node.moduleSpecifier.text : null;
       const names = node.exportClause && ts.isNamedExports(node.exportClause) ? node.exportClause.elements.map((element: any) => element.name.text) : [];
       exports.push({ source, kind: node.exportClause ? "named" : "all", names });
     }
     if (ts.isExportAssignment(node)) exports.push({ source: null, kind: "default", names: [] });
+
     const kind = symbolKind(node);
-    if (kind && node.name) symbols.push({ kind, name: node.name.getText(sourceFile), exported: hasModifier(node, ts.SyntaxKind.ExportKeyword), start: node.getStart(sourceFile), end: node.getEnd() });
+    if (kind && node.name) {
+      symbols.push({
+        kind,
+        name: node.name.getText(sourceFile),
+        exported: hasModifier(node, ts.SyntaxKind.ExportKeyword),
+        start: node.getStart(sourceFile),
+        end: node.getEnd(),
+      });
+    }
+
     if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
-      const expression = node.expression;
+      const expression = ts.isCallExpression(node) ? node.expression : node.expression;
       calls.push({ name: expression.getText(sourceFile), start: node.getStart(sourceFile), end: node.getEnd() });
     }
+
     let decision = false;
     if (ts.isIfStatement(node) || ts.isForStatement(node) || ts.isForInStatement(node) || ts.isForOfStatement(node) || ts.isWhileStatement(node) || ts.isDoStatement(node) || ts.isCatchClause(node) || ts.isConditionalExpression(node)) decision = true;
     if (ts.isCaseClause(node)) decision = true;
@@ -258,11 +317,22 @@ function analyzeWithTypeScript(file: DiscoveredSourceFile, sourceText: string): 
     ts.forEachChild(node, (child: any) => visit(child, next));
   }
   visit(sourceFile, 0);
+
   const diagnostics = ((sourceFile as any).parseDiagnostics ?? []).map((diag: any) => ({ message: ts.flattenDiagnosticMessageText(diag.messageText, "\n") }));
   return finalize(file.relativePath, sourceText, imports, exports, symbols, calls, cyclomatic, maxNesting, diagnostics);
 }
 
-function finalize(relativePath: string, sourceText: string, imports: SyntaxImport[], exports: SyntaxExport[], symbols: SyntaxSymbol[], calls: SyntaxCall[], cyclomatic: number, maxNesting: number, diagnostics: SyntaxDiagnostic[]): SyntaxFileAnalysis {
+function finalize(
+  relativePath: string,
+  sourceText: string,
+  imports: SyntaxImport[],
+  exports: SyntaxExport[],
+  symbols: SyntaxSymbol[],
+  calls: SyntaxCall[],
+  cyclomatic: number,
+  maxNesting: number,
+  diagnostics: SyntaxDiagnostic[],
+): SyntaxFileAnalysis {
   const stable = <T>(items: T[], key: (item: T) => string): T[] => items.sort((a, b) => key(a).localeCompare(key(b)));
   return {
     relativePath,
