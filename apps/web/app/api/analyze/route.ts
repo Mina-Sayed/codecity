@@ -1,7 +1,7 @@
 import "server-only";
 
 import { buildCityModel } from "@codecity/city-layout";
-import { GitHubIngestionError, analyzePublicGitHubRepository } from "@codecity/repository-ingestion";
+import { GitHubIngestionError, analyzePublicGitHubRepository } from "@codecity/repository-ingestion/web";
 import type { AnalysisStreamEvent } from "../../../lib/analysis-events";
 
 export const runtime = "nodejs";

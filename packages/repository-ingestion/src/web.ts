@@ -1,4 +1,4 @@
-import { analyzeLocalRepository } from "@codecity/analyzer-js-ts";
+import { analyzeLocalRepository } from "@codecity/analyzer-js-ts/web";
 import { analyzePublicGitHubRepositoryWithAnalyzer, type GitHubIngestionOptions } from "./github-core.js";
 
 export * from "./github-core.js";

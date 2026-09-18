@@ -17,12 +17,14 @@ import {
 } from "@codecity/graph-core";
 import { discoverSourceFiles } from "./file-discovery.js";
 import { analyzeSemantics, type SemanticResult } from "./semantic-pass.js";
-import { analyzeSyntax, type SyntaxFileAnalysis, type SyntaxSymbol } from "./syntax-pass.js";
+import type { DiscoveredSourceFile } from "./file-discovery.js";
+import type { SyntaxFileAnalysis, SyntaxSymbol } from "./syntax-pass.js";
 
 export interface AnalyzeLocalRepositoryInput {
   rootDir: string;
   repository: RepositoryMeta;
   analysisTimestamp?: string;
+  parserVersion?: string;
 }
 
 const CONFIDENCE_RANK: Record<EdgeConfidence, number> = {
@@ -206,7 +208,7 @@ function normalizeGraph(
     flows: [],
     analysis: {
       analyzerVersion: "0.1.0",
-      parserVersion: "oxc-parser",
+      parserVersion: input.parserVersion ?? "oxc-parser",
       commitSha: input.repository.commit,
       semanticStatus: semantic.status,
       warnings: [...semantic.warnings],
@@ -216,8 +218,11 @@ function normalizeGraph(
   };
 }
 
-export async function analyzeLocalRepository(
+export type SyntaxAnalyzer = (file: DiscoveredSourceFile, sourceText: string) => SyntaxFileAnalysis | Promise<SyntaxFileAnalysis>;
+
+export async function analyzeLocalRepositoryWithSyntax(
   input: AnalyzeLocalRepositoryInput,
+  analyzeSyntax: SyntaxAnalyzer,
 ): Promise<ProjectGraph> {
   const rootDir = resolve(input.rootDir);
   const discovered = await discoverSourceFiles(rootDir);

@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./web": {
+      "types": "./src/web.ts",
+      "default": "./dist/web.js"
     }
   },
   "scripts": {
