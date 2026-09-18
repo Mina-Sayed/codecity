@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { CityModel } from "@codecity/city-layout";
 import type { Finding } from "@codecity/graph-core";
@@ -21,11 +21,26 @@ export function RepositoryExperience() {
   const [progress, setProgress] = useState<GitHubAnalysisProgress | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => controllerRef.current?.abort(), []);
+
+  function cancelAnalysis() {
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setStatus("idle");
+    setProgress(null);
+    setError(null);
+  }
 
   async function analyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const url = repositoryUrl.trim();
     if (!url) return;
+
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
     setStatus("running");
     setProgress({ stage: "validating_repository", message: "Validating GitHub repository URL." });
@@ -37,6 +52,7 @@ export function RepositoryExperience() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repositoryUrl: url }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -74,8 +90,11 @@ export function RepositoryExperience() {
 
       if (!resolved) throw new Error("Analysis finished without returning a city model.");
     } catch (reason) {
+      if (controller.signal.aborted) return;
       setStatus("error");
       setError(reason instanceof Error ? reason.message : "CodeCity could not analyze this repository.");
+    } finally {
+      if (controllerRef.current === controller) controllerRef.current = null;
     }
   }
 
@@ -131,10 +150,11 @@ export function RepositoryExperience() {
         {status === "running" && progress ? (
           <div className="analysis-progress" role="status" aria-live="polite">
             <span className="progress-pulse" aria-hidden="true" />
-            <div>
+            <div className="analysis-progress-copy">
               <strong>{progress.stage.replaceAll("_", " ")}</strong>
               <p>{progress.message}</p>
             </div>
+            <button className="cancel-analysis" type="button" onClick={cancelAnalysis}>Cancel</button>
           </div>
         ) : null}
 

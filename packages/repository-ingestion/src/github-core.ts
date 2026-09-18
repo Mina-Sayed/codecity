@@ -55,7 +55,8 @@ export type GitHubIngestionErrorCode =
   | "ARCHIVE_TOO_LARGE"
   | "EXTRACTED_CONTENT_TOO_LARGE"
   | "TOO_MANY_FILES"
-  | "INVALID_ARCHIVE";
+  | "INVALID_ARCHIVE"
+  | "ANALYSIS_ABORTED";
 
 export class GitHubIngestionError extends Error {
   readonly code: GitHubIngestionErrorCode;
@@ -86,6 +87,7 @@ export interface GitHubIngestionOptions {
   limits?: Partial<GitHubIngestionLimits>;
   analysisTimestamp?: string;
   onProgress?: (progress: GitHubAnalysisProgress) => void | Promise<void>;
+  signal?: AbortSignal;
 }
 
 function normalizedLimits(overrides: Partial<GitHubIngestionLimits> | undefined): GitHubIngestionLimits {
@@ -135,6 +137,16 @@ export function parseGitHubRepositoryUrl(input: string): GitHubRepositoryRef {
   return { owner, name };
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new GitHubIngestionError("ANALYSIS_ABORTED", "Repository analysis was cancelled.");
+  }
+}
+
+function isAbortError(error: unknown, signal?: AbortSignal): boolean {
+  return signal?.aborted === true || (error instanceof Error && error.name === "AbortError");
+}
+
 function githubHeaders(token?: string): HeadersInit {
   return {
     Accept: "application/vnd.github+json",
@@ -148,8 +160,16 @@ async function requestGitHubJson<T>(
   url: string,
   fetchImpl: typeof fetch,
   token?: string,
+  signal?: AbortSignal,
 ): Promise<T> {
-  const response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow" });
+  throwIfAborted(signal);
+  let response: Response;
+  try {
+    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", signal });
+  } catch (error) {
+    if (isAbortError(error, signal)) throw new GitHubIngestionError("ANALYSIS_ABORTED", "Repository analysis was cancelled.");
+    throw error;
+  }
   if (response.ok) return response.json() as Promise<T>;
 
   if (response.status === 404) {
@@ -167,7 +187,7 @@ async function requestGitHubJson<T>(
 
 export async function resolvePublicGitHubRepository(
   repository: GitHubRepositoryRef,
-  options: Pick<GitHubIngestionOptions, "fetchImpl" | "token" | "limits"> = {},
+  options: Pick<GitHubIngestionOptions, "fetchImpl" | "token" | "limits" | "signal"> = {},
 ): Promise<GitHubRepositoryMetadata> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const limits = normalizedLimits(options.limits);
@@ -179,6 +199,7 @@ export async function resolvePublicGitHubRepository(
     `https://api.github.com/repos/${encodedOwner}/${encodedName}`,
     fetchImpl,
     options.token,
+    options.signal,
   );
   if (repo.private) {
     throw new GitHubIngestionError("PRIVATE_REPOSITORY", "CodeCity V1 only supports public GitHub repositories.");
@@ -197,6 +218,7 @@ export async function resolvePublicGitHubRepository(
     `https://api.github.com/repos/${encodedOwner}/${encodedName}/branches/${encodeURIComponent(repo.default_branch)}`,
     fetchImpl,
     options.token,
+    options.signal,
   );
   if (!branch.commit?.sha) {
     throw new GitHubIngestionError("GITHUB_REQUEST_FAILED", "GitHub default branch does not expose a commit SHA.");
@@ -217,9 +239,17 @@ async function downloadArchive(
   fetchImpl: typeof fetch,
   token: string | undefined,
   maxArchiveBytes: number,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal);
   const url = `https://api.github.com/repos/${encodeURIComponent(metadata.owner)}/${encodeURIComponent(metadata.name)}/tarball/${encodeURIComponent(metadata.commit)}`;
-  const response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow" });
+  let response: Response;
+  try {
+    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", signal });
+  } catch (error) {
+    if (isAbortError(error, signal)) throw new GitHubIngestionError("ANALYSIS_ABORTED", "Repository analysis was cancelled.");
+    throw error;
+  }
   if (!response.ok) {
     if (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0") {
       throw new GitHubIngestionError("GITHUB_RATE_LIMITED", "GitHub API rate limit was reached while fetching the source archive.", 403);
@@ -235,6 +265,7 @@ async function downloadArchive(
   try {
     const reader = response.body.getReader();
     while (true) {
+      throwIfAborted(signal);
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
@@ -256,6 +287,7 @@ async function extractArchive(
   archivePath: string,
   sourceDir: string,
   limits: GitHubIngestionLimits,
+  signal?: AbortSignal,
 ): Promise<void> {
   let files = 0;
   let extractedBytes = 0;
@@ -268,6 +300,7 @@ async function extractArchive(
       preservePaths: false,
       unlink: true,
       filter: (_path, entry) => {
+        throwIfAborted(signal);
         if (!("type" in entry)) return false;
         const entryType = entry.type;
         if (entryType === "Directory") return true;
@@ -316,6 +349,7 @@ export async function analyzePublicGitHubRepositoryWithAnalyzer(
   assertPositiveLimits(limits);
   const fetchImpl = options.fetchImpl ?? fetch;
 
+  throwIfAborted(options.signal);
   await emit(options.onProgress, "validating_repository", "Validating GitHub repository URL.");
   const repository = parseGitHubRepositoryUrl(repositoryUrl);
 
@@ -324,8 +358,10 @@ export async function analyzePublicGitHubRepositoryWithAnalyzer(
     fetchImpl,
     ...(options.token ? { token: options.token } : {}),
     limits,
+    signal: options.signal,
   });
 
+  throwIfAborted(options.signal);
   const temporaryRoot = await mkdtemp(join(tmpdir(), "codecity-github-"));
   const archivePath = join(temporaryRoot, "repository.tar.gz");
   const sourceDir = join(temporaryRoot, "source");
@@ -333,11 +369,12 @@ export async function analyzePublicGitHubRepositoryWithAnalyzer(
   try {
     await mkdir(sourceDir, { recursive: true });
     await emit(options.onProgress, "downloading_archive", "Downloading repository source archive.");
-    await downloadArchive(metadata, archivePath, fetchImpl, options.token, limits.maxArchiveBytes);
+    await downloadArchive(metadata, archivePath, fetchImpl, options.token, limits.maxArchiveBytes, options.signal);
 
     await emit(options.onProgress, "extracting_archive", "Extracting repository into an isolated temporary workspace.");
-    await extractArchive(archivePath, sourceDir, limits);
+    await extractArchive(archivePath, sourceDir, limits, options.signal);
 
+    throwIfAborted(options.signal);
     await emit(options.onProgress, "analyzing_sources", "Parsing JavaScript and TypeScript sources without executing repository code.");
     const graph = await analyzeLocalRepository({
       rootDir: sourceDir,
@@ -349,6 +386,7 @@ export async function analyzePublicGitHubRepositoryWithAnalyzer(
       analysisTimestamp: options.analysisTimestamp ?? new Date().toISOString(),
     });
 
+    throwIfAborted(options.signal);
     await emit(options.onProgress, "applying_rules", "Applying deterministic engineering rules.");
     return applyEngineeringRules(graph);
   } finally {
