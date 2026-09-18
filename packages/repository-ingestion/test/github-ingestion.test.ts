@@ -122,6 +122,22 @@ describe("GitHub archive ingestion", () => {
     }
   });
 
+  it("stops before network work when the analysis signal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    let requests = 0;
+    const fetchImpl = (async () => {
+      requests += 1;
+      throw new Error("fetch should not run");
+    }) as typeof fetch;
+
+    await expect(analyzePublicGitHubRepository("https://github.com/acme/widget", {
+      fetchImpl,
+      signal: controller.signal,
+    })).rejects.toMatchObject({ code: "ANALYSIS_ABORTED" });
+    expect(requests).toBe(0);
+  });
+
   it("enforces the compressed archive byte limit while streaming", async () => {
     const fetchImpl = (async (input: string | URL | Request) => {
       const url = String(input);
