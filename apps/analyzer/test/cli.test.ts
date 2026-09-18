@@ -20,13 +20,12 @@ describe("analyzer CLI", () => {
     const repoRoot = resolve(import.meta.dirname, "../../..");
     const outputDir = await mkdtemp(join(tmpdir(), "codecity-cli-"));
     const output = join(outputDir, "simple-ts.project-graph.json");
-    const cli = resolve(repoRoot, "apps/analyzer/src/cli.ts");
+    const cli = resolve(repoRoot, "apps/analyzer/dist/cli.js");
     const fixture = resolve(repoRoot, "fixtures/simple-ts");
 
     const child = spawnSync(
       process.execPath,
       [
-        "--experimental-strip-types",
         cli,
         "analyze",
         fixture,

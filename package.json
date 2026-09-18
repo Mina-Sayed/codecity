@@ -2,12 +2,14 @@
   "name": "codecity",
   "private": true,
   "packageManager": "pnpm@12.4.2",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-    "test": "vitest --run",
-    "analyzer": "node --experimental-strip-types apps/analyzer/src/cli.ts"
+    "test": "turbo run build && vitest --run",
+    "analyzer": "turbo run build && node apps/analyzer/dist/cli.js"
   },
   "devDependencies": {
     "turbo": "2.10.13",
