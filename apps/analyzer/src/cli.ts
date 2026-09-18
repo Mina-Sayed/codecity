@@ -106,7 +106,7 @@ export async function runCli(args: string[]): Promise<number> {
     const options = parseAnalyzeGitHubArgs(rest);
     const token = process.env.GITHUB_TOKEN;
     const graph = await analyzePublicGitHubRepository(options.repositoryUrl, {
-      ...(token ? { token: options.token } : {}),
+      ...(token ? { token } : {}),
       onProgress: ({ message }) => console.error(`[codecity] ${message}`),
     });
     await writeGraph(options.output, graph);
