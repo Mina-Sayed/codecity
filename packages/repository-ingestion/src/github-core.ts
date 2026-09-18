@@ -165,7 +165,7 @@ async function requestGitHubJson<T>(
   throwIfAborted(signal);
   let response: Response;
   try {
-    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", signal });
+    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", ...(signal ? { signal } : {}) });
   } catch (error) {
     if (isAbortError(error, signal)) throw new GitHubIngestionError("ANALYSIS_ABORTED", "Repository analysis was cancelled.");
     throw error;
@@ -245,7 +245,7 @@ async function downloadArchive(
   const url = `https://api.github.com/repos/${encodeURIComponent(metadata.owner)}/${encodeURIComponent(metadata.name)}/tarball/${encodeURIComponent(metadata.commit)}`;
   let response: Response;
   try {
-    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", signal });
+    response = await fetchImpl(url, { headers: githubHeaders(token), redirect: "follow", ...(signal ? { signal } : {}) });
   } catch (error) {
     if (isAbortError(error, signal)) throw new GitHubIngestionError("ANALYSIS_ABORTED", "Repository analysis was cancelled.");
     throw error;
@@ -358,7 +358,7 @@ export async function analyzePublicGitHubRepositoryWithAnalyzer(
     fetchImpl,
     ...(options.token ? { token: options.token } : {}),
     limits,
-    signal: options.signal,
+    ...(options.signal ? { signal: options.signal } : {}),
   });
 
   throwIfAborted(options.signal);
