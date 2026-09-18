@@ -268,9 +268,11 @@ async function extractArchive(
       preservePaths: false,
       unlink: true,
       filter: (_path, entry) => {
-        if (entry.type === "Directory") return true;
-        if (entry.type === "SymbolicLink" || entry.type === "Link") return false;
-        if (entry.type !== "File" && entry.type !== "OldFile" && entry.type !== "ContiguousFile") return false;
+        if (!("type" in entry)) return false;
+        const entryType = entry.type;
+        if (entryType === "Directory") return true;
+        if (entryType === "SymbolicLink" || entryType === "Link") return false;
+        if (entryType !== "File" && entryType !== "OldFile" && entryType !== "ContiguousFile") return false;
 
         files += 1;
         extractedBytes += Math.max(0, entry.size ?? 0);
