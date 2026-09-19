@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { CityModel } from "@codecity/city-layout";
 import { CitySearch } from "./search";
 
@@ -10,6 +11,11 @@ interface ProjectExplorerProps {
 }
 
 export function ProjectExplorer({ model, selectedId, onSelect }: ProjectExplorerProps) {
+  const buildingsById = useMemo(
+    () => new Map(model.buildings.map((building) => [building.id, building])),
+    [model.buildings],
+  );
+
   return (
     <nav className="panel explorer" aria-label="Project explorer">
       <div className="panel-heading">
@@ -23,7 +29,7 @@ export function ProjectExplorer({ model, selectedId, onSelect }: ProjectExplorer
             <h2 id={`district-${district.id}`}>{district.path}</h2>
             <ul>
               {district.buildingIds.map((buildingId) => {
-                const building = model.buildings.find((candidate) => candidate.id === buildingId);
+                const building = buildingsById.get(buildingId);
                 if (!building) return null;
                 return (
                   <li key={building.id}>

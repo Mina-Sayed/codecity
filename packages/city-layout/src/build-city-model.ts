@@ -20,12 +20,16 @@ function buildingId(file: FileNode): string {
   return makeNodeId("city-building", file.path);
 }
 
-function findingIdsForFile(graph: ProjectGraph, file: FileNode): string[] {
+function findingIdsForFile(
+  file: FileNode,
+  findingIdsByNodeId: ReadonlyMap<string, readonly string[]>,
+): string[] {
   const nodeIds = new Set([file.id, ...file.symbolIds]);
-  return graph.findings
-    .filter((finding) => finding.nodeIds.some((nodeId) => nodeIds.has(nodeId)))
-    .map((finding) => finding.id)
-    .sort();
+  const findingIds = new Set<string>();
+  for (const nodeId of nodeIds) {
+    for (const findingId of findingIdsByNodeId.get(nodeId) ?? []) findingIds.add(findingId);
+  }
+  return [...findingIds].sort();
 }
 
 function fileEdges(graph: ProjectGraph, buildingByFile: ReadonlyMap<string, string>): CityEdge[] {
@@ -91,6 +95,15 @@ function center(bounds: CityBounds): Vec3 {
 export async function buildCityModel(graph: ProjectGraph): Promise<CityModel> {
   const groups = groupFilesIntoDistricts(graph);
   const filesById = new Map(graph.files.map((file) => [file.id, file]));
+  const filesByBuildingId = new Map(graph.files.map((file) => [buildingId(file), file]));
+  const findingIdsByNodeId = new Map<string, string[]>();
+  for (const finding of graph.findings) {
+    for (const nodeId of finding.nodeIds) {
+      const findingIds = findingIdsByNodeId.get(nodeId) ?? [];
+      findingIds.push(finding.id);
+      findingIdsByNodeId.set(nodeId, findingIds);
+    }
+  }
   const packingByDistrict = new Map<
     string,
     ReturnType<typeof packDistrictBuildings>
@@ -138,7 +151,7 @@ export async function buildCityModel(graph: ProjectGraph): Promise<CityModel> {
     const packed = packingByDistrict.get(group.id)!;
     const placed = layoutById.get(group.id) ?? { position: { x: 0, y: 0, z: 0 } };
     for (const packedBuilding of packed.buildings) {
-      const file = graph.files.find((candidate) => buildingId(candidate) === packedBuilding.id);
+      const file = filesByBuildingId.get(packedBuilding.id);
       if (!file) continue;
       const id = packedBuilding.id;
       buildingByFile.set(file.id, id);
@@ -157,7 +170,7 @@ export async function buildCityModel(graph: ProjectGraph): Promise<CityModel> {
         complexity: file.complexity,
         loc: file.loc,
         symbolCount: file.symbolIds.length,
-        findingIds: findingIdsForFile(graph, file),
+        findingIds: findingIdsForFile(file, findingIdsByNodeId),
       });
     }
   }

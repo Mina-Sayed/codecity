@@ -1,11 +1,19 @@
 "use client";
 
+import { useMemo } from "react";
 import type { CityModel } from "@codecity/city-layout";
 import type { Finding } from "@codecity/graph-core";
 import { useCityStore } from "./city-store";
 
 export function FindingsPanel({ model, findings }: { model: CityModel; findings: Finding[] }) {
   const selectBuilding = useCityStore((state) => state.selectBuilding);
+  const buildingByFindingId = useMemo(() => {
+    const index = new Map<string, CityModel["buildings"][number]>();
+    for (const building of model.buildings) {
+      for (const findingId of building.findingIds) index.set(findingId, building);
+    }
+    return index;
+  }, [model.buildings]);
 
   return (
     <section className="findings-panel" aria-labelledby="findings-heading">
@@ -15,7 +23,7 @@ export function FindingsPanel({ model, findings }: { model: CityModel; findings:
       </div>
       <ul className="finding-list">
         {findings.map((finding) => {
-          const building = model.buildings.find((candidate) => candidate.findingIds.includes(finding.id));
+          const building = buildingByFindingId.get(finding.id);
           return (
             <li key={finding.id}>
               <button

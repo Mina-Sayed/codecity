@@ -219,10 +219,12 @@ function normalizeGraph(
 }
 
 export type SyntaxAnalyzer = (file: DiscoveredSourceFile, sourceText: string) => SyntaxFileAnalysis | Promise<SyntaxFileAnalysis>;
+export type SemanticAnalyzer = (rootDir: string, syntax: readonly SyntaxFileAnalysis[]) => Promise<SemanticResult>;
 
 export async function analyzeLocalRepositoryWithSyntax(
   input: AnalyzeLocalRepositoryInput,
   analyzeSyntax: SyntaxAnalyzer,
+  analyzeSemantic: SemanticAnalyzer = analyzeSemantics,
 ): Promise<ProjectGraph> {
   const rootDir = resolve(input.rootDir);
   const discovered = await discoverSourceFiles(rootDir);
@@ -231,7 +233,7 @@ export async function analyzeLocalRepositoryWithSyntax(
   );
   syntax.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
 
-  const semantic = await analyzeSemantics(rootDir, syntax);
+  const semantic = await analyzeSemantic(rootDir, syntax);
   const languages = new Map(
     discovered.map((file) => [normalizeGraphPath(file.relativePath), file.language] as const),
   );

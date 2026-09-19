@@ -16,9 +16,13 @@ interface WorkspaceShellProps {
 export function WorkspaceShell({ model, findings }: WorkspaceShellProps) {
   const selectedId = useCityStore((state) => state.selectedId);
   const selectBuilding = useCityStore((state) => state.selectBuilding);
+  const buildingsById = useMemo(
+    () => new Map(model.buildings.map((building) => [building.id, building])),
+    [model.buildings],
+  );
   const selected = useMemo(
-    () => model.buildings.find((building) => building.id === selectedId) ?? null,
-    [model.buildings, selectedId],
+    () => (selectedId ? buildingsById.get(selectedId) ?? null : null),
+    [buildingsById, selectedId],
   );
 
   useEffect(() => {

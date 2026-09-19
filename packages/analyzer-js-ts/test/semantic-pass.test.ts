@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { analyzeSemantics, analyzeSyntax, discoverSourceFiles } from "../src/index.js";
+import { analyzeSemantics, analyzeSemanticsWithTypeScript, analyzeSyntax, discoverSourceFiles } from "../src/index.js";
 
 async function syntaxFor(rootDir: string) {
   const files = await discoverSourceFiles(rootDir);
@@ -24,5 +24,13 @@ describe("analyzeSemantics", () => {
     const result = await analyzeSemantics(root, await syntaxFor(root));
     expect(result.status).toBe("degraded");
     expect(result.warnings.length).toBeGreaterThan(0);
+  });
+
+  it("provides a TypeScript-only semantic pass for the web analyzer", async () => {
+    const root = resolve(import.meta.dirname, "../../../fixtures/simple-ts");
+    const result = await analyzeSemanticsWithTypeScript(root, await syntaxFor(root));
+    expect(result.resolvedImports).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourcePath: "src/app-service.ts", targetPath: "src/shared/base-service.ts" }),
+    ]));
   });
 });
