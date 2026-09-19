@@ -126,7 +126,10 @@ ul { list-style: none; margin: 0; padding: 0; }
 .repo-form button, .analyze-another { border: 1px solid var(--accent); background: var(--accent); color: #03110f; padding: 0 18px; font: inherit; font-weight: 700; cursor: pointer; }
 .repo-form button:disabled { opacity: .55; cursor: default; }
 .analysis-progress, .analysis-error { margin-top: 18px; border: 1px solid var(--line); padding: 14px; display: flex; gap: 12px; align-items: flex-start; }
+.analysis-progress-copy { min-width: 0; flex: 1; }
 .analysis-progress strong { text-transform: uppercase; color: var(--accent); font-size: 10px; letter-spacing: .1em; }
+.cancel-analysis { margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 7px 10px; cursor: pointer; font: inherit; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.cancel-analysis:hover, .cancel-analysis:focus-visible { border-color: var(--danger); color: var(--danger); outline: none; }
 .analysis-progress p, .analysis-error p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
 .progress-pulse { width: 9px; height: 9px; margin-top: 3px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 rgba(94,234,212,.5); animation: pulse 1.4s infinite; }
 .analysis-error { border-color: rgba(251,113,133,.35); color: var(--danger); }

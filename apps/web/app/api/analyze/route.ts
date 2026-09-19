@@ -14,6 +14,19 @@ function encode(event: AnalysisStreamEvent): Uint8Array {
   return encoder.encode(`${JSON.stringify(event)}\n`);
 }
 
+function safeEnqueue(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  event: AnalysisStreamEvent,
+  signal: AbortSignal,
+): void {
+  if (signal.aborted) return;
+  try {
+    controller.enqueue(encode(event));
+  } catch {
+    // The client disconnected or cancelled the stream.
+  }
+}
+
 function requestError(message: string, status: number): Response {
   return Response.json(
     { type: "error", code: "INVALID_REQUEST", message },
@@ -49,20 +62,22 @@ export async function POST(request: Request): Promise<Response> {
           const token = process.env.GITHUB_TOKEN;
           const graph = await analyzePublicGitHubRepository(repositoryUrl, {
             ...(token ? { token } : {}),
+            signal: request.signal,
             onProgress: (progress) => {
-              controller.enqueue(encode({ type: "progress", progress }));
+              safeEnqueue(controller, { type: "progress", progress }, request.signal);
             },
           });
           const model = await buildCityModel(graph);
-          controller.enqueue(encode({ type: "result", model, findings: graph.findings }));
+          safeEnqueue(controller, { type: "result", model, findings: graph.findings }, request.signal);
         } catch (error) {
+          if (request.signal.aborted) return;
           if (error instanceof GitHubIngestionError) {
-            controller.enqueue(encode({ type: "error", code: error.code, message: error.message }));
+            safeEnqueue(controller, { type: "error", code: error.code, message: error.message }, request.signal);
           } else {
-            controller.enqueue(encode({ type: "error", code: "INTERNAL_ERROR", message: "CodeCity could not analyze this repository." }));
+            safeEnqueue(controller, { type: "error", code: "INTERNAL_ERROR", message: "CodeCity could not analyze this repository." }, request.signal);
           }
         } finally {
-          controller.close();
+          try { controller.close(); } catch { /* stream already cancelled */ }
         }
       })();
     },
