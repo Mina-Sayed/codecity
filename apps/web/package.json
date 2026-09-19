@@ -1,0 +1,29 @@
+{
+  "name": "@codecity/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@codecity/city-layout": "workspace:*",
+    "@codecity/graph-core": "workspace:*",
+    "@codecity/repository-ingestion": "workspace:*",
+    "@react-three/drei": "10.7.8",
+    "@react-three/fiber": "9.7.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "three": "0.186.0",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0"
+  }
+}

@@ -9,7 +9,8 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run build && vitest --run",
-    "analyzer": "turbo run build && node apps/analyzer/dist/cli.js"
+    "analyzer": "turbo run build && node apps/analyzer/dist/cli.js",
+    "dev": "turbo run dev --parallel"
   },
   "devDependencies": {
     "@types/node": "24.13.5",
