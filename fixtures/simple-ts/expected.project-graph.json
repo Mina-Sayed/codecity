@@ -1,0 +1,358 @@
+{
+  "schemaVersion": "1.0.0",
+  "repository": {
+    "owner": "codecity",
+    "name": "simple-ts",
+    "commit": "fixture"
+  },
+  "workspaces": [],
+  "districts": [],
+  "files": [
+    {
+      "id": "file:1fd59a73a23587a7a880",
+      "kind": "file",
+      "name": "index.ts",
+      "path": "src/index.ts",
+      "language": "ts",
+      "loc": 2,
+      "complexity": {
+        "cyclomatic": 1,
+        "maxNesting": 0
+      },
+      "symbolIds": [],
+      "externalImports": [],
+      "entrypoint": true
+    },
+    {
+      "id": "file:51231974dd374d9f2b27",
+      "kind": "file",
+      "name": "app-service.ts",
+      "path": "src/app-service.ts",
+      "language": "ts",
+      "loc": 7,
+      "complexity": {
+        "cyclomatic": 1,
+        "maxNesting": 0
+      },
+      "symbolIds": [
+        "class:eaf6c754d9e0c3a4264f",
+        "function:0afe4ac5b5e5c8001541"
+      ],
+      "externalImports": [],
+      "entrypoint": false
+    },
+    {
+      "id": "file:6f0d8730eea529691a28",
+      "kind": "file",
+      "name": "notify.ts",
+      "path": "src/notify.ts",
+      "language": "ts",
+      "loc": 3,
+      "complexity": {
+        "cyclomatic": 1,
+        "maxNesting": 0
+      },
+      "symbolIds": [
+        "function:57d4b3c5c33524f4dcb5"
+      ],
+      "externalImports": [],
+      "entrypoint": false
+    },
+    {
+      "id": "file:7f21927eafbe535816f6",
+      "kind": "file",
+      "name": "order-repository.ts",
+      "path": "src/order-repository.ts",
+      "language": "ts",
+      "loc": 3,
+      "complexity": {
+        "cyclomatic": 1,
+        "maxNesting": 0
+      },
+      "symbolIds": [
+        "function:ac0b79c1e9457ec91794"
+      ],
+      "externalImports": [],
+      "entrypoint": false
+    },
+    {
+      "id": "file:af95d4e03c80fddae73c",
+      "kind": "file",
+      "name": "base-service.ts",
+      "path": "src/shared/base-service.ts",
+      "language": "ts",
+      "loc": 5,
+      "complexity": {
+        "cyclomatic": 1,
+        "maxNesting": 0
+      },
+      "symbolIds": [
+        "class:2c573a947761b92a508d",
+        "function:22f16649180a83b218d4"
+      ],
+      "externalImports": [],
+      "entrypoint": false
+    },
+    {
+      "id": "file:b3ac5580bf022cd14040",
+      "kind": "file",
+      "name": "order-service.ts",
+      "path": "src/order-service.ts",
+      "language": "ts",
+      "loc": 9,
+      "complexity": {
+        "cyclomatic": 2,
+        "maxNesting": 1
+      },
+      "symbolIds": [
+        "class:d1ed243839a6b667003a",
+        "function:2e93553c78205df4f7b8"
+      ],
+      "externalImports": [],
+      "entrypoint": false
+    }
+  ],
+  "symbols": [
+    {
+      "id": "class:2c573a947761b92a508d",
+      "kind": "class",
+      "name": "BaseService",
+      "fileId": "file:af95d4e03c80fddae73c",
+      "exported": true,
+      "sourceRange": {
+        "start": 0,
+        "end": 75
+      }
+    },
+    {
+      "id": "class:d1ed243839a6b667003a",
+      "kind": "class",
+      "name": "OrderService",
+      "fileId": "file:b3ac5580bf022cd14040",
+      "exported": true,
+      "sourceRange": {
+        "start": 90,
+        "end": 237
+      }
+    },
+    {
+      "id": "class:eaf6c754d9e0c3a4264f",
+      "kind": "class",
+      "name": "AppService",
+      "fileId": "file:51231974dd374d9f2b27",
+      "exported": true,
+      "sourceRange": {
+        "start": 53,
+        "end": 143
+      }
+    },
+    {
+      "id": "function:0afe4ac5b5e5c8001541",
+      "kind": "function",
+      "name": "startedAt",
+      "fileId": "file:51231974dd374d9f2b27",
+      "exported": false,
+      "sourceRange": {
+        "start": 101,
+        "end": 141
+      }
+    },
+    {
+      "id": "function:22f16649180a83b218d4",
+      "kind": "function",
+      "name": "now",
+      "fileId": "file:af95d4e03c80fddae73c",
+      "exported": false,
+      "sourceRange": {
+        "start": 29,
+        "end": 73
+      }
+    },
+    {
+      "id": "function:2e93553c78205df4f7b8",
+      "kind": "function",
+      "name": "place",
+      "fileId": "file:b3ac5580bf022cd14040",
+      "exported": false,
+      "sourceRange": {
+        "start": 120,
+        "end": 235
+      }
+    },
+    {
+      "id": "function:57d4b3c5c33524f4dcb5",
+      "kind": "function",
+      "name": "notify",
+      "fileId": "file:6f0d8730eea529691a28",
+      "exported": true,
+      "sourceRange": {
+        "start": 0,
+        "end": 49
+      }
+    },
+    {
+      "id": "function:ac0b79c1e9457ec91794",
+      "kind": "function",
+      "name": "saveOrder",
+      "fileId": "file:7f21927eafbe535816f6",
+      "exported": true,
+      "sourceRange": {
+        "start": 0,
+        "end": 79
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "extends:5264a2e9ca089df306fa",
+      "kind": "extends",
+      "source": "class:eaf6c754d9e0c3a4264f",
+      "target": "class:2c573a947761b92a508d",
+      "confidence": "high"
+    },
+    {
+      "id": "imports:2347ad57efbc368b9466",
+      "kind": "imports",
+      "source": "file:51231974dd374d9f2b27",
+      "target": "file:af95d4e03c80fddae73c",
+      "confidence": "high"
+    },
+    {
+      "id": "imports:ad8348dd26837f0f64e6",
+      "kind": "imports",
+      "source": "file:b3ac5580bf022cd14040",
+      "target": "file:7f21927eafbe535816f6",
+      "confidence": "high"
+    },
+    {
+      "id": "reexports:b22657fc204db27e9756",
+      "kind": "reexports",
+      "source": "file:1fd59a73a23587a7a880",
+      "target": "file:b3ac5580bf022cd14040",
+      "confidence": "high"
+    },
+    {
+      "id": "reexports:f147575bc7e56a2f7ee1",
+      "kind": "reexports",
+      "source": "file:b3ac5580bf022cd14040",
+      "target": "file:6f0d8730eea529691a28",
+      "confidence": "high"
+    },
+    {
+      "id": "reexports:fa8b3b5a48510a133a05",
+      "kind": "reexports",
+      "source": "file:1fd59a73a23587a7a880",
+      "target": "file:51231974dd374d9f2b27",
+      "confidence": "high"
+    }
+  ],
+  "metrics": {
+    "sourceFiles": 6,
+    "totalLoc": 29,
+    "symbols": 8,
+    "edges": 6,
+    "semanticCoverage": 1
+  },
+  "findings": [
+    {
+      "id": "finding:67951ecae5e4a8635da3",
+      "ruleId": "complexity-hotspot",
+      "title": "Complexity hotspot",
+      "description": "Cyclomatic complexity is high relative to other files in this repository.",
+      "severity": "high",
+      "nodeIds": [
+        "file:b3ac5580bf022cd14040"
+      ],
+      "metrics": {
+        "cyclomatic": 2,
+        "maxNesting": 1,
+        "percentile": 1
+      }
+    },
+    {
+      "id": "finding:6c9a9e403bf3179a6414",
+      "ruleId": "large-module",
+      "title": "Large module",
+      "description": "This file is unusually large relative to the repository by LOC or symbol count.",
+      "severity": "high",
+      "nodeIds": [
+        "file:af95d4e03c80fddae73c"
+      ],
+      "metrics": {
+        "loc": 5,
+        "symbols": 2,
+        "percentile": 1
+      }
+    },
+    {
+      "id": "finding:72e14b52e4640e8e4f75",
+      "ruleId": "large-module",
+      "title": "Large module",
+      "description": "This file is unusually large relative to the repository by LOC or symbol count.",
+      "severity": "high",
+      "nodeIds": [
+        "file:51231974dd374d9f2b27"
+      ],
+      "metrics": {
+        "loc": 7,
+        "symbols": 2,
+        "percentile": 1
+      }
+    },
+    {
+      "id": "finding:80c4ba95843b80966680",
+      "ruleId": "dependency-hub",
+      "title": "Dependency hub",
+      "description": "This file has high normalized degree centrality relative to the repository.",
+      "severity": "high",
+      "nodeIds": [
+        "file:b3ac5580bf022cd14040"
+      ],
+      "metrics": {
+        "totalDegree": 3,
+        "percentile": 1
+      }
+    },
+    {
+      "id": "finding:8333d194129705617a9b",
+      "ruleId": "high-coupling",
+      "title": "High coupling",
+      "description": "This file sits near the top of the repository-relative dependency distribution.",
+      "severity": "high",
+      "nodeIds": [
+        "file:b3ac5580bf022cd14040"
+      ],
+      "metrics": {
+        "fanIn": 1,
+        "fanOut": 2,
+        "totalDegree": 3,
+        "percentile": 1
+      }
+    },
+    {
+      "id": "finding:a6ed5404098966d36482",
+      "ruleId": "large-module",
+      "title": "Large module",
+      "description": "This file is unusually large relative to the repository by LOC or symbol count.",
+      "severity": "high",
+      "nodeIds": [
+        "file:b3ac5580bf022cd14040"
+      ],
+      "metrics": {
+        "loc": 9,
+        "symbols": 2,
+        "percentile": 1
+      }
+    }
+  ],
+  "flows": [],
+  "analysis": {
+    "analyzerVersion": "0.1.0",
+    "parserVersion": "oxc-parser",
+    "commitSha": "fixture",
+    "semanticStatus": "complete",
+    "warnings": [],
+    "degradedReasons": [],
+    "timestamp": "1970-01-01T00:00:00.000Z"
+  }
+}
