@@ -1,10 +1,5 @@
-import { buildCityModel } from "@codecity/city-layout";
-import { WorkspaceShell } from "../components/city/workspace-shell";
-import { loadDemoGraph } from "../lib/demo-graph";
+import { RepositoryExperience } from "../components/city/repository-experience";
 
-export default async function HomePage() {
-  const graph = await loadDemoGraph();
-  const city = await buildCityModel(graph);
-
-  return <WorkspaceShell model={city} findings={graph.findings} />;
+export default function HomePage() {
+  return <RepositoryExperience />;
 }
