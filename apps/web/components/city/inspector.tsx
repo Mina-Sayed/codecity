@@ -14,11 +14,11 @@ export function Inspector({ building, model, findings }: InspectorProps) {
   return (
     <aside className="panel inspector" aria-label="Building inspector" aria-live="polite">
       <section className="inspector-detail">
-        <div className="panel-heading"><span>Inspector</span></div>
+        <div className="panel-heading"><div><span className="panel-kicker">03 / DETAIL</span><strong>Inspector</strong></div></div>
         {building ? (
           <div className="inspector-content">
             <div>
-              <p className="eyebrow">File building</p>
+            <p className="eyebrow">Selected file</p>
               <h2>{building.name}</h2>
               <p className="path">{building.path}</p>
             </div>
@@ -36,7 +36,7 @@ export function Inspector({ building, model, findings }: InspectorProps) {
             </section>
           </div>
         ) : (
-          <p className="empty-copy">Select a building from the explorer to inspect the file.</p>
+          <p className="empty-copy"><span className="empty-mark">＋</span>Select a building from the explorer to inspect the file.</p>
         )}
       </section>
       <FindingsPanel model={model} findings={findings} />
