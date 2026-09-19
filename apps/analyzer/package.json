@@ -10,6 +10,7 @@
   "dependencies": {
     "@codecity/analyzer-js-ts": "workspace:*",
     "@codecity/engineering-rules": "workspace:*",
-    "@codecity/graph-core": "workspace:*"
+    "@codecity/graph-core": "workspace:*",
+    "tar": "7.5.22"
   }
 }
