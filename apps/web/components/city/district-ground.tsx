@@ -12,7 +12,7 @@ export function DistrictGround({ model, receiveShadow }: { model: CityModel; rec
           receiveShadow={receiveShadow}
         >
           <boxGeometry args={[district.size.x, district.size.y, district.size.z]} />
-          <meshStandardMaterial color="#111d28" roughness={0.9} metalness={0.05} />
+          <meshStandardMaterial color="#1a3a44" roughness={0.84} metalness={0.08} />
         </mesh>
       ))}
     </group>

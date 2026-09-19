@@ -19,8 +19,8 @@ export function ProjectExplorer({ model, selectedId, onSelect }: ProjectExplorer
   return (
     <nav className="panel explorer" aria-label="Project explorer">
       <div className="panel-heading">
-        <span>Project</span>
-        <strong>{model.buildings.length}</strong>
+        <div><span className="panel-kicker">01 / STRUCTURE</span><strong>Project explorer</strong></div>
+        <span className="count-badge">{model.buildings.length}</span>
       </div>
       <CitySearch model={model} />
       <div className="district-list">

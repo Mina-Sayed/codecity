@@ -18,8 +18,8 @@ export function FindingsPanel({ model, findings }: { model: CityModel; findings:
   return (
     <section className="findings-panel" aria-labelledby="findings-heading">
       <div className="panel-heading">
-        <span id="findings-heading">Engineering findings</span>
-        <strong>{findings.length}</strong>
+        <div><span className="panel-kicker">04 / SIGNALS</span><strong id="findings-heading">Engineering findings</strong></div>
+        <span className="count-badge count-badge-warning">{findings.length}</span>
       </div>
       <ul className="finding-list">
         {findings.map((finding) => {

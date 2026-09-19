@@ -27,7 +27,7 @@ export function DependencyLines({ model }: { model: CityModel }) {
           <Line
             key={edge.id}
             points={[point(source.position, lift), point(target.position, lift)]}
-            color={edge.level === "file" ? "#5eead4" : "#395468"}
+            color={edge.level === "file" ? "#8ff1d0" : "#8ac7ff"}
             lineWidth={edge.level === "file" ? 2.2 : Math.min(3.5, 1 + edge.weight * 0.45)}
             transparent
             opacity={edge.level === "file" ? 0.9 : 0.46}

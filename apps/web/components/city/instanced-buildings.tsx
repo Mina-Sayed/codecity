@@ -21,9 +21,9 @@ export function InstancedBuildings({ model, enableShadows }: InstancedBuildingsP
     const mesh = meshRef.current;
     if (!mesh) return;
     const object = new Object3D();
-    const regular = new Color("#4b9bb3");
-    const selected = new Color("#5eead4");
-    const finding = new Color("#d96b78");
+    const regular = new Color("#79aeb9");
+    const selected = new Color("#8ff1d0");
+    const finding = new Color("#f6c76a");
 
     ordered.forEach((building, index) => {
       object.position.set(building.position.x, building.position.y, building.position.z);

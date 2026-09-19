@@ -30,34 +30,37 @@ export function CitySearch({ model }: { model: CityModel }) {
   return (
     <div className="city-search">
       <label htmlFor="city-search-input">Search files</label>
-      <input
-        id="city-search-input"
-        value={query}
-        placeholder="Find file or path…"
-        autoComplete="off"
-        onChange={(event) => {
-          setQuery(event.target.value);
-          setActiveIndex(0);
-        }}
-        onKeyDown={(event) => {
-          if (!matches.length) return;
-          if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setActiveIndex((index) => (index + 1) % matches.length);
-          } else if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setActiveIndex((index) => (index - 1 + matches.length) % matches.length);
-          } else if (event.key === "Enter") {
-            event.preventDefault();
-            choose(activeIndex);
-          } else if (event.key === "Escape") {
-            setQuery("");
+      <div className="search-field">
+        <input
+          id="city-search-input"
+          value={query}
+          placeholder="Find file or path…"
+          autoComplete="off"
+          onChange={(event) => {
+            setQuery(event.target.value);
             setActiveIndex(0);
-          }
-        }}
-        aria-controls="city-search-results"
-        aria-expanded={matches.length > 0}
-      />
+          }}
+          onKeyDown={(event) => {
+            if (!matches.length) return;
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActiveIndex((index) => (index + 1) % matches.length);
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActiveIndex((index) => (index - 1 + matches.length) % matches.length);
+            } else if (event.key === "Enter") {
+              event.preventDefault();
+              choose(activeIndex);
+            } else if (event.key === "Escape") {
+              setQuery("");
+              setActiveIndex(0);
+            }
+          }}
+          aria-controls="city-search-results"
+          aria-expanded={matches.length > 0}
+        />
+        {query ? <button className="search-clear" type="button" aria-label="Clear file search" onClick={() => { setQuery(""); setActiveIndex(0); }}>×</button> : null}
+      </div>
       {matches.length ? (
         <ul id="city-search-results" className="search-results" aria-label="Search results">
           {matches.map((building, index) => (

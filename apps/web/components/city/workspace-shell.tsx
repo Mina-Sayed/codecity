@@ -28,11 +28,13 @@ export function WorkspaceShell({ model, findings }: WorkspaceShellProps) {
   return (
     <main className="workspace">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">CC</span><strong>CodeCity</strong></div>
-        <div className="repo-meta">
-          <span>{model.repository.owner}/{model.repository.name}</span>
-          <span>{model.buildings.length} files</span>
-          <span>{findings.length} findings</span>
+        <div className="brand"><span className="brand-mark">CC</span><div><strong>CodeCity</strong><span>ARCHITECTURE FIELD ATLAS</span></div></div>
+        <div className="repo-identity"><span>ANALYZED REPOSITORY</span><strong>{model.repository.owner}/{model.repository.name}</strong></div>
+        <div className="topbar-stats" aria-label="Repository summary">
+          <div><span>FILES</span><strong>{model.buildings.length}</strong></div>
+          <div><span>DISTRICTS</span><strong>{model.districts.length}</strong></div>
+          <div><span>FINDINGS</span><strong>{findings.length}</strong></div>
+          <span className="live-pill"><span className="status-dot" /> MAP READY</span>
         </div>
       </header>
       <ProjectExplorer model={model} selectedId={selectedId} onSelect={selectBuilding} />
@@ -45,8 +47,8 @@ export function WorkspaceShell({ model, findings }: WorkspaceShellProps) {
       </section>
       <Inspector building={selected} model={model} findings={findings} />
       <footer className="statusbar">
-        <span>ProjectGraph → CityModel v{model.version}</span>
-        <span>Bounds {Math.round(model.bounds.max.x - model.bounds.min.x)} × {Math.round(model.bounds.max.z - model.bounds.min.z)}</span>
+        <span><b>PROJECTGRAPH</b> → CITYMODEL v{model.version}</span>
+        <span>MAP BOUNDS {Math.round(model.bounds.max.x - model.bounds.min.x)} × {Math.round(model.bounds.max.z - model.bounds.min.z)}</span>
       </footer>
     </main>
   );

@@ -31,13 +31,14 @@ export function CityCanvas({ model }: { model: CityModel }) {
       }}
       onPointerMissed={() => clearSelection()}
     >
-      <color attach="background" args={["#05080d"]} />
-      <fog attach="fog" args={["#05080d", span * 1.5, span * 5]} />
-      <ambientLight intensity={0.8} />
+      <color attach="background" args={["#10232d"]} />
+      <fog attach="fog" args={["#10232d", span * 1.5, span * 5]} />
+      <ambientLight intensity={1.05} />
+      <hemisphereLight args={["#b9e2e3", "#0b1218", 0.9]} />
       <directionalLight
         castShadow={renderProfile.shadows}
         position={[target.x + span, Math.max(30, span), target.z + span * 0.5]}
-        intensity={2.2}
+        intensity={2.6}
       />
       <DistrictGround model={model} receiveShadow={renderProfile.shadows} />
       <DependencyLines model={model} />

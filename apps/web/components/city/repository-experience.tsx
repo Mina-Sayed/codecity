@@ -15,6 +15,25 @@ interface AnalysisResult {
   findings: Finding[];
 }
 
+const ANALYSIS_STAGES = [
+  ["validating_repository", "Validate repository"],
+  ["fetching_metadata", "Resolve repository"],
+  ["downloading_archive", "Download source"],
+  ["extracting_archive", "Open source safely"],
+  ["analyzing_sources", "Read architecture"],
+  ["applying_rules", "Surface hotspots"],
+] as const;
+
+function isGitHubRepositoryUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    const parts = url.pathname.split("/").filter(Boolean);
+    return url.protocol === "https:" && url.hostname.toLowerCase() === "github.com" && parts.length === 2;
+  } catch {
+    return false;
+  }
+}
+
 export function RepositoryExperience() {
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -37,6 +56,12 @@ export function RepositoryExperience() {
     event.preventDefault();
     const url = repositoryUrl.trim();
     if (!url) return;
+    if (!isGitHubRepositoryUrl(url)) {
+      setStatus("error");
+      setError("Enter a standard GitHub repository URL, for example https://github.com/owner/repository.");
+      setProgress(null);
+      return;
+    }
 
     controllerRef.current?.abort();
     const controller = new AbortController();
@@ -120,56 +145,86 @@ export function RepositoryExperience() {
   return (
     <main className="landing-shell">
       <section className="landing-card">
-        <p className="eyebrow">CodeCity / GitHub analysis</p>
-        <h1>Walk inside your codebase.</h1>
-        <p className="landing-copy">
-          Paste a public GitHub repository. CodeCity reads JavaScript and TypeScript, builds the dependency graph,
-          flags engineering hotspots, then turns the result into an interactive 3D city.
-        </p>
-        <form className="repo-form" onSubmit={analyze}>
-          <label htmlFor="repository-url">Public GitHub repository</label>
-          <div className="repo-form-row">
-            <input
-              id="repository-url"
-              name="repositoryUrl"
-              type="url"
-              inputMode="url"
-              autoComplete="url"
-              required
-              disabled={status === "running"}
-              placeholder="https://github.com/owner/repository"
-              value={repositoryUrl}
-              onChange={(event) => setRepositoryUrl(event.target.value)}
-            />
-            <button type="submit" disabled={status === "running" || !repositoryUrl.trim()}>
-              {status === "running" ? "Analyzing…" : "Build my city"}
-            </button>
+        <div className="landing-intro">
+          <div className="landing-kicker"><span className="kicker-dot" /> CODECITY / FIELD ATLAS</div>
+          <h1>See the shape of your codebase.</h1>
+          <p className="landing-copy">
+            Paste a public GitHub repository. CodeCity turns its JavaScript and TypeScript architecture into a map you can inspect, search, and explore.
+          </p>
+          <form className="repo-form" onSubmit={analyze} noValidate>
+            <label htmlFor="repository-url">Public GitHub repository</label>
+            <div className="repo-form-row">
+              <input
+                id="repository-url"
+                name="repositoryUrl"
+                type="url"
+                inputMode="url"
+                autoComplete="url"
+                required
+                disabled={status === "running"}
+                placeholder="https://github.com/owner/repository"
+                value={repositoryUrl}
+                aria-invalid={status === "error" ? true : undefined}
+                aria-describedby={status === "error" ? "repository-url-error" : undefined}
+                onChange={(event) => {
+                  setRepositoryUrl(event.target.value);
+                  if (status === "error") setStatus("idle");
+                }}
+              />
+              <button type="submit" disabled={status === "running" || !repositoryUrl.trim()}>
+                {status === "running" ? "Reading…" : "Build my city"}
+              </button>
+            </div>
+          </form>
+          <div className="landing-notes" aria-label="Analysis guarantees">
+            <span><b>01</b> Public repos only</span>
+            <span><b>02</b> No install</span>
+            <span><b>03</b> No code execution</span>
           </div>
-        </form>
+        </div>
+
+        <aside className="landing-preview" aria-label="CodeCity preview">
+          <div className="preview-topline"><span>LIVE ARCHITECTURE MAP</span><span className="preview-status"><span className="status-dot" /> READY</span></div>
+          <div className="preview-map" aria-hidden="true">
+            <span className="map-line map-line-one" />
+            <span className="map-line map-line-two" />
+            <span className="map-line map-line-three" />
+            <span className="map-node map-node-one" />
+            <span className="map-node map-node-two" />
+            <span className="map-node map-node-three" />
+            <span className="map-node map-node-four" />
+            <span className="map-stack map-stack-one" />
+            <span className="map-stack map-stack-two" />
+            <span className="map-stack map-stack-three" />
+          </div>
+          <div className="preview-caption">
+            <div><span className="eyebrow">FROM SOURCE TO CITY</span><strong>Trace the systems that matter.</strong></div>
+            <span className="preview-coordinate">X 04 / Z 12</span>
+          </div>
+        </aside>
 
         {status === "running" && progress ? (
           <div className="analysis-progress" role="status" aria-live="polite">
-            <span className="progress-pulse" aria-hidden="true" />
-            <div className="analysis-progress-copy">
-              <strong>{progress.stage.replaceAll("_", " ")}</strong>
-              <p>{progress.message}</p>
+            <div className="analysis-progress-header">
+              <div><span className="eyebrow">ANALYSIS IN FLIGHT</span><strong>{progress.message}</strong></div>
+              <button className="cancel-analysis" type="button" onClick={cancelAnalysis}>Cancel</button>
             </div>
-            <button className="cancel-analysis" type="button" onClick={cancelAnalysis}>Cancel</button>
+            <ol className="analysis-stages">
+              {ANALYSIS_STAGES.map(([stage, label], index) => {
+                const currentIndex = ANALYSIS_STAGES.findIndex(([key]) => key === progress.stage);
+                const state = index < currentIndex ? "complete" : index === currentIndex ? "active" : "upcoming";
+                return <li className={`analysis-stage ${state}`} key={stage}><span className="stage-marker" />{label}</li>;
+              })}
+            </ol>
           </div>
         ) : null}
 
         {status === "error" && error ? (
           <div className="analysis-error" role="alert">
             <strong>Analysis failed</strong>
-            <p>{error}</p>
+            <p id="repository-url-error">{error}</p>
           </div>
         ) : null}
-
-        <div className="landing-notes">
-          <span>Public repositories only</span>
-          <span>No dependency installation</span>
-          <span>No repository code execution</span>
-        </div>
       </section>
     </main>
   );
