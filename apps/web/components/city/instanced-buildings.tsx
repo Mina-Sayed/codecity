@@ -8,9 +8,10 @@ import { useCityStore } from "./city-store";
 
 interface InstancedBuildingsProps {
   model: CityModel;
+  enableShadows: boolean;
 }
 
-export function InstancedBuildings({ model }: InstancedBuildingsProps) {
+export function InstancedBuildings({ model, enableShadows }: InstancedBuildingsProps) {
   const meshRef = useRef<InstancedMesh>(null);
   const selectedId = useCityStore((state) => state.selectedId);
   const selectBuilding = useCityStore((state) => state.selectBuilding);
@@ -44,7 +45,13 @@ export function InstancedBuildings({ model }: InstancedBuildingsProps) {
   }
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, ordered.length]} onClick={onClick} castShadow receiveShadow>
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, ordered.length]}
+      onClick={onClick}
+      castShadow={enableShadows}
+      receiveShadow={enableShadows}
+    >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial vertexColors roughness={0.62} metalness={0.12} />
     </instancedMesh>

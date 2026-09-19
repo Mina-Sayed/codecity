@@ -335,3 +335,10 @@ export async function analyzeSemantics(
     return sortSemanticResult(fallback);
   }
 }
+
+export function analyzeSemanticsWithTypeScript(
+  rootDir: string,
+  syntax: readonly SyntaxFileAnalysis[],
+): Promise<SemanticResult> {
+  return analyzeWithTypeScript(rootDir, syntax);
+}

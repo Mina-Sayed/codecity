@@ -6,6 +6,7 @@ import { CameraRig } from "./camera-rig";
 import { DependencyLines } from "./dependency-lines";
 import { DistrictGround } from "./district-ground";
 import { InstancedBuildings } from "./instanced-buildings";
+import { getCityRenderProfile } from "./render-profile";
 import { useCityStore } from "./city-store";
 
 export function CityCanvas({ model }: { model: CityModel }) {
@@ -14,12 +15,14 @@ export function CityCanvas({ model }: { model: CityModel }) {
   const depth = model.bounds.max.z - model.bounds.min.z;
   const span = Math.max(width, depth, 20);
   const target = model.cameraTarget;
+  const renderProfile = getCityRenderProfile(model.buildings.length);
 
   return (
     <Canvas
       className="city-canvas"
-      shadows
-      dpr={[1, 1.75]}
+      shadows={renderProfile.shadows}
+      dpr={renderProfile.dpr}
+      gl={{ antialias: renderProfile.antialias, powerPreference: "high-performance" }}
       camera={{
         position: [target.x + span * 0.75, Math.max(24, span * 0.65), target.z + span * 0.75],
         fov: 44,
@@ -32,13 +35,13 @@ export function CityCanvas({ model }: { model: CityModel }) {
       <fog attach="fog" args={["#05080d", span * 1.5, span * 5]} />
       <ambientLight intensity={0.8} />
       <directionalLight
-        castShadow
+        castShadow={renderProfile.shadows}
         position={[target.x + span, Math.max(30, span), target.z + span * 0.5]}
         intensity={2.2}
       />
-      <DistrictGround model={model} />
+      <DistrictGround model={model} receiveShadow={renderProfile.shadows} />
       <DependencyLines model={model} />
-      <InstancedBuildings model={model} />
+      <InstancedBuildings model={model} enableShadows={renderProfile.shadows} />
       <CameraRig model={model} />
     </Canvas>
   );

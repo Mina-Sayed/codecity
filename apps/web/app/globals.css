@@ -18,6 +18,7 @@ body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Libe
 button { font: inherit; }
 
 .workspace {
+  height: 100vh;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 310px;
@@ -28,6 +29,7 @@ button { font: inherit; }
     "status status status";
   background: radial-gradient(circle at 55% 35%, rgba(30, 64, 82, 0.2), transparent 42%), var(--bg);
 }
+.workspace > * { min-height: 0; }
 
 .topbar { grid-area: top; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 18px; background: rgba(5, 8, 13, 0.95); }
 .brand { display: flex; align-items: center; gap: 10px; letter-spacing: -0.02em; }
@@ -39,6 +41,7 @@ button { font: inherit; }
 .panel-heading { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line-soft); color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .12em; }
 .panel-heading strong { color: var(--text); }
 .district-list { padding: 8px; }
+.district-group { content-visibility: auto; contain-intrinsic-size: 120px; }
 .district-group h2 { margin: 12px 8px 6px; color: var(--muted); font-size: 11px; font-weight: 500; }
 ul { list-style: none; margin: 0; padding: 0; }
 .file-button { width: 100%; border: 1px solid transparent; background: transparent; color: var(--text); padding: 8px 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; }
