@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import type { CityModel } from "@codecity/city-layout";
 import type { Finding } from "@codecity/graph-core";
 import { CityCanvas } from "./city-canvas";
@@ -24,10 +24,6 @@ export function WorkspaceShell({ model, findings }: WorkspaceShellProps) {
     () => (selectedId ? buildingsById.get(selectedId) ?? null : null),
     [buildingsById, selectedId],
   );
-
-  useEffect(() => {
-    if (!selectedId && model.buildings[0]) selectBuilding(model.buildings[0].id);
-  }, [model.buildings, selectBuilding, selectedId]);
 
   return (
     <main className="workspace">
